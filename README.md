@@ -1,6 +1,7 @@
 # MicroMouse_UL
+Proyecto de ensamble y programación de un robot para la solución de laberintos.
 
-#### Members:
+#### Miembros:
 1. Piero Narciso
 2. Alonso Sassagawa
 3. Melanie Paz
