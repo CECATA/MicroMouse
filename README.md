@@ -8,6 +8,7 @@ Proyecto de ensamble y programación de un robot para la solución de laberintos
 
 ### Posibles Algoritmos:
 http://www.astrolog.org/labyrnth/algrithm.htm
+https://en.wikipedia.org/wiki/Maze_solving_algorithm
 #### a. Flood Fill Algorithm
 #### b. A star Algorithm
 #### c. Compass Algorithm
