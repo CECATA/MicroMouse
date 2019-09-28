@@ -29,6 +29,6 @@ float read_distance(int trigger, int echo)
   digitalWrite(trigger, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigger, LOW);
-  float t = digitalRead(echo);
+  float t = pulseIn(echo, HIGH);
   return t / 59;
 }
