@@ -49,7 +49,7 @@ float read_distance(int trigger, int echo)
     trigger: Ultrasonic's trigger pin
     echo: Ultrasonic's echo pin
   */
-}
+  
   digitalWrite(trigger, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigger, LOW);
@@ -57,7 +57,7 @@ float read_distance(int trigger, int echo)
   return t / 59;
 }
 
-void move_wheel_front(int pin1, int pin2, int pwm, int speed_)
+void move_forward(int pin1, int pin2, int pwm, int speed_)
 { /*
   "Move a wheel to front with a specific speed" 
     pin1: Motor pin (IN) 1
@@ -69,4 +69,19 @@ void move_wheel_front(int pin1, int pin2, int pwm, int speed_)
   analogWrite(pwm, speed_);
   digitalWrite(pin1, HIGH);
   digitalWrite(pin2, LOW);
+}
+
+
+void move_backward(int pin1, int pin2, int pwm, int speed_)
+{ /*
+  "Move a wheel to front with a specific speed" 
+    pin1: Motor pin (IN) 1
+    pin2: Motor pin (IN) 2
+    pwm: Motor pwm
+    speed_: Motor speed range(0, 255)
+  */
+  
+  analogWrite(pwm, speed_);
+  digitalWrite(pin1, LOW);
+  digitalWrite(pin2, HIGH);
 }
