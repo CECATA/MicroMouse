@@ -6,6 +6,8 @@
 #define trig_front 5
 #define echo_front 6
 
+// ENABLE
+#define ENABLE 11 //STBY
 //MotorA pins
 #define AIN1 7
 #define AIN2 8
@@ -18,9 +20,10 @@ int Bpwm = 250; //start motorB speed
 // Setup start variables and arrays
 const int min_distance = 3;
 int distances[3] = {10, 10, 10}; //{left_distance, right_distance, left_distance}
-float move_vector[3] = {0, 0, 0}; // {0-1}
-
-
+float side_vector[2] = {0, 0}; // {0-1}
+float front_ = 0; // 0-1
+int speed_A = 150;
+int speed_B = 150;
 void setup()
 {
   Serial.begin(9600);
@@ -39,26 +42,20 @@ void setup()
   pinMode(echo_right, INPUT);
   pinMode(trig_front, OUTPUT);
   pinMode(echo_front, INPUT);
+
+  pinMode(ENABLE, OUTPUT);
+  digitalWrite(ENABLE, HIGH);
 }
 
 void loop()
 {
+  move_forward(AIN1, AIN2, Apwm, speed_A);
+  move_forward(BIN1, BIN2, Bpwm, speed_B);
+  update_distance(distances);
+  update_moves(distances, side_vector, front_, min_distance);
   
 }
 
-float read_distance(int trigger, int echo)
-{ /*
-  "The function return a float distance"
-    trigger: Ultrasonic's trigger pin
-    echo: Ultrasonic's echo pin
-  */
-
-  digitalWrite(trigger, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigger, LOW);
-  float t = pulseIn(echo, HIGH);
-  return t / 59;
-}
 
 void move_forward(int pin1, int pin2, int pwm, int speed_)
 { /*
@@ -101,18 +98,38 @@ void update_distance(int* distances)
    distances[2] = read_distance(trig_right, echo_right);
 }
 
+float read_distance(int trigger, int echo)
+{ /*
+  "The function return a float distance"
+    trigger: Ultrasonic's trigger pin
+    echo: Ultrasonic's echo pin
+  */
 
-void check_move(int* distances, int* move_vector, int minimun_distance)
+  digitalWrite(trigger, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger, LOW);
+  float t = pulseIn(echo, HIGH);
+  return t / 59;
+}
+
+void update_moves(int* distances, float* side_vector, float front_, int minimun_distance)
 {
-  for(int i=0; i<3; i++)
+  /*
+   * distances: a distance array where {left_distance, front_distance, right_distance}
+   * side_vector: array {-1, 1}
+   * front_: float -1,1
+   * minimun_distance: int to change the state value of each element in side_vector
+   */
+  int iter[2] = {0, 2};
+  for(int i=0; i<2; i++)
   {
-    if(distances[i]<=min_distance)
+    if(distances[iter[i]]<=min_distance)
     {
-      move_vector[i] = 1;
+      side_vector[i] = -1;
     }
     else
     {
-      move_vector[i] = 0;
+      side_vector[i] = 1;
     }
   }
 }
