@@ -6,20 +6,20 @@
 #define trig_front 5
 #define echo_front 6
 
-// ENABLE
-#define ENABLE 11 //STBY
 //MotorA pins
 #define AIN1 7
 #define AIN2 8
-int Apwm = 250; //start motorA speed
+int Apwm = 11; //start motorA speed
 //MotorB pins
 #define BIN1 9
 #define BIN2 10
-int Bpwm = 250; //start motorB speed
+int Bpwm = 12; //start motorB speed
 
 // Setup start variables and arrays
 const int min_distance = 3;
-int distances[3] = {10, 10, 10}; //{left_distance, right_distance, left_distance}
+const int max_distance = 15;
+const int factor = 1.2;
+float distances[3] = {10, 10, 10}; //{left_distance, right_distance, left_distance}
 float side_vector[2] = {0, 0}; // {0-1}
 float front_ = 0; // 0-1
 int speed_A = 150;
@@ -42,9 +42,6 @@ void setup()
   pinMode(echo_right, INPUT);
   pinMode(trig_front, OUTPUT);
   pinMode(echo_front, INPUT);
-
-  pinMode(ENABLE, OUTPUT);
-  digitalWrite(ENABLE, HIGH);
 }
 
 void loop()
@@ -52,7 +49,7 @@ void loop()
   move_forward(AIN1, AIN2, Apwm, speed_A);
   move_forward(BIN1, BIN2, Bpwm, speed_B);
   update_distance(distances);
-  update_moves(distances, side_vector, front_, min_distance);
+  update_moves(distances, side_vector, front_, min_distance, max_distance, min_distance);
   
 }
 
@@ -87,7 +84,7 @@ void move_backward(int pin1, int pin2, int pwm, int speed_)
 
 
 
-void update_distance(int* distances)
+void update_distance(float* distances)
 {
   /*
    "Update the distances for each sensor to a close object"
@@ -112,8 +109,7 @@ float read_distance(int trigger, int echo)
   return t / 59;
 }
 
-void update_moves(int* distances, float* side_vector, float front_, int minimun_distance)
-{
+void update_moves(float* distances, float* side_vector, float front_, int minimun_distance, int max_, int min_){
   /*
    * distances: a distance array where {left_distance, front_distance, right_distance}
    * side_vector: array {-1, 1}
@@ -121,15 +117,16 @@ void update_moves(int* distances, float* side_vector, float front_, int minimun_
    * minimun_distance: int to change the state value of each element in side_vector
    */
   int iter[2] = {0, 2};
-  for(int i=0; i<2; i++)
-  {
-    if(distances[iter[i]]<=min_distance)
-    {
-      side_vector[i] = -1;
-    }
-    else
-    {
-      side_vector[i] = 1;
-    }
+  for(int i=0; i<2; i++){
+    side_vector[i] = scale_factor(distances[iter[i]], max_, min_, -1, 0);
   }
+
+}
+
+float scale_factor(int distance, int max_, int min_, int a, int b){
+  /*
+   * Return a float factor between a and b
+   * distance: distance value (ultrasonic sensor)
+   */
+   return (b - a) * ((distance - min_) / (max_ - min_)) - a;
 }
