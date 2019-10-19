@@ -6,11 +6,11 @@
 #define trig_front 5
 #define echo_front 6
 
-//MotorA pins
+//MotorA pins > LEFT MOTOR
 #define AIN1 7
 #define AIN2 8
 int Apwm = 11; //start motorA speed
-//MotorB pins
+//MotorB pins > RIGHT MOTOR
 #define BIN1 9
 #define BIN2 10
 int Bpwm = 12; //start motorB speed
@@ -20,11 +20,11 @@ const int min_distance = 3;
 const int max_distance = 15;
 const int factor = 1.2;
 float distances[3] = {10, 10, 10}; //{left_distance, right_distance, left_distance}
-float side_vector[2] = {0, 0}; // {0-1}
-float front_ = 0; // 0-1
-int speed_A = 150;
-int speed_B = 150;
-
+int side_vector[2] = {0, 0}; // {0-1}
+int front_ = 0; // 0-1
+int speed_A = 0;
+int speed_B = 0;
+int standard_speed = 200;
 
 void setup(){
   Serial.begin(9600);
@@ -46,15 +46,15 @@ void setup(){
 }
 
 void loop(){
-  move_forward(AIN1, AIN2, Apwm, speed_A);
-  move_forward(BIN1, BIN2, Bpwm, speed_B);
+  move_wheel(AIN1, AIN2, Apwm, speed_A);
+  move_wheel(BIN1, BIN2, Bpwm, speed_B);
   update_distance(distances);
-  update_moves(distances, side_vector, front_, min_distance, max_distance, min_distance);
+  update_move(distances, side_vector, front_, min_distance, max_distance, speed_A, speed_B, standard_speed);
   
 }
 
 
-void move_forward(int pin1, int pin2, int pwm, int speed_){
+void move_wheel(int pin1, int pin2, int pwm, int speed_){
   /*
   "Move a wheel to front with a specific speed" 
     pin1: Motor pin (IN) 1
@@ -66,20 +66,6 @@ void move_forward(int pin1, int pin2, int pwm, int speed_){
   digitalWrite(pin1, HIGH);
   digitalWrite(pin2, LOW);
 }
-
-//void move_backward(int pin1, int pin2, int pwm, int speed_)
-//{ /*
-//  "Move a wheel to front with a specific speed" 
-//    pin1: Motor pin (IN) 1
-//    pin2: Motor pin (IN) 2
-//    pwm: Motor pwm
-//    speed_: Motor speed range(-255, 255)
-//  */
-//
-//  analogWrite(pwm, speed_);
-//  digitalWrite(pin1, LOW);
-//  digitalWrite(pin2, HIGH);
-//}
 
 
 void update_distance(float* distances){
@@ -105,23 +91,43 @@ float read_distance(int trigger, int echo){
   return t / 59;
 }
 
-void update_moves(float* distances, float* side_vector, float front_, int min_, int max_){
+void update_move(float* distance, int* side_vector, int front_, int min_, int max_, int speed_A, int speed_B, int stSpeed){
   /*
    * distances: a distance array where {left_distance, front_distance, right_distance}
    * side_vector: array {-1, 1}
    * front_: float -1,1
    * min_: minimun distance
    * max_: maximun distance
+   * stSpeed: standard speed
    */
-  int iter[2] = {0, 2};
-  for(int i=0; i<2; i++){
-    side_vector[i] = scale_factor(distances[iter[i]], min_, max_, 1, -1);
+   //Case 1: left and right wall
+  if ((distance[0]<=min_)&&(distance[1]>=min_)&&(distance[2]<=min_)){
+    // >> Move forward
+    speed_A = stSpeed;
+    speed_B = stSpeed;
+  }// Case 2: left and front wall
+  else if ((distance[0]<=min_)&&(distance[1]<=min_)&&(distance[2]>=min_)){
+    // >> Move right
+    speed_A = stSpeed;
+    speed_B = -stSpeed;
+  }// Case 3: front and right wall
+  else if ((distance[0]>=min_)&&(distance[1]<=min_)&&(distance[2]<=min_)){
+    // >> Move left
+    speed_A = -stSpeed;
+    speed_B = stSpeed;
+  }// Case 4: front wall
+  else if ((distance[0]>=min_)&&(distance[1]<=min_)&&(distance[2]>=min_)){
+    // >> This could be random, move left
+    speed_A = -stSpeed;
+    speed_B = stSpeed;
+  }// Case 5: left, front, right wall
+  else if ((distance[0]<=min_)&&(distance[1]<=min_)&&(distance[2]<=min_)){
+    // Spin until can go forward
+    while (distance[1]<=min_){
+      speed_A = -stSpeed;
+      speed_B = stSpeed;
+    }
   }
-  // Case 1: side walls
-  if (distance[1]>=min_){
-    front_ = 1;
-  }// Case 2: lef wall, front wall
-  else if (distance[1]<=min_)
 }
 
 float scale_factor(int distance, int min_, int max_, int a, int b){
