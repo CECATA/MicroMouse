@@ -1,27 +1,39 @@
-// Pins
-int pinsMotorA[3] = {};
-int pinsMotorB[3] = {};
-int triggerPins[3] = {6, 3, 19};
-int echoPins[3] = {5, 2, 18};
-// Constants
-int speed_;
-int minDistance;
+/**
+ * {
+     A0 : 14
+     A1 : 15
+     A2 : 16
+     A3 : 17
+     A4 : 18
+     A5 : 19
+     A6 : 20
+     A7 : 21
+ }*/
 
-class MicroMouse;
-class Node;
+// Pins
+int pinsMotorRight[3] = {6, 7, 8}; // IN1, IN2, PWM
+int pinsMotorLeft[3] = {4, 3, 2}; // IN1, IN2, PWM
+int triggerPins[3] = {10, 18, 17}; // Left, Front, Right
+int echoPins[3] = {9, 19, 16}; // Left, Front, Right
+int stby = 5;
+// Constants
+int speed_ = 150;
+int minDistance = 6;
 
 
 class MicroMouse{
 
     public:
         //MotorA pins
-        int AIN1;
-        int AIN2;
-        int Apwm;
+        int RIN1;
+        int RIN2;
+        int Rpwm;
         //MotorB pins
-        int BIN1;
-        int BIN2;
-        int Bpwm;
+        int LIN1;
+        int LIN2;
+        int Lpwm;
+        // StandBy
+        int stby;
         // Ultrasonic pins
         int triggerLeft;
         int triggerFront;
@@ -39,21 +51,14 @@ class MicroMouse{
         bool RightWall = false;
         bool LeftWall = false;
 
-        void setTestPins(int trigger, int echo){
-            triggerRight = trigger;
-            echoRight = echo;
-        }
-        void setTest(){
-            pinMode(triggerRight, OUTPUT);
-            pinMode(echoRight, INPUT);
-        }
+
         /**
          * Setup speed
          * 
-         * @param speed_ : integer type [0-250]
+         * @param s : integer type [0-255]
          */
-        void setSpeed(int speed_){
-            speed_ = speed_;
+        void set_speed(int s){
+            speed_ = s;
         }
         /**
         * Setup minimun distance
@@ -64,18 +69,26 @@ class MicroMouse{
             minDistance = dist;
         }
         /**
-         * Setup the pins of the motor
+         * Setup the pins of the motors
          * 
-         * @param pinsA : int array type [IN1, IN2, PWM]
-         * @param pinsB : int array type [IN1, IN2, PWM]
+         * @param pinsMotorRight : int array type [IN1, IN2, PWM]
+         * @param pinsMotorLeft : int array type [IN1, IN2, PWM]
          */
-        void setMotorPins(int *pinsA, int *pinsB){
-            AIN1 = pinsA[0];
-            AIN2 = pinsA[1];
-            Apwm = pinsA[2];
-            BIN1 = pinsB[0];
-            BIN2 = pinsB[1];
-            Bpwm = pinsB[2];
+        void setMotorPins(int *pinsMotorRight, int *pinsMotorLeft){
+            RIN1 = pinsMotorRight[0];
+            RIN2 = pinsMotorRight[1];
+            Rpwm = pinsMotorRight[2];
+            LIN1 = pinsMotorLeft[0];
+            LIN2 = pinsMotorLeft[1];
+            Lpwm = pinsMotorLeft[2];
+        }
+        /**
+         * Setup stand by
+         *
+         * @param stPin : int type
+         */
+        void setSTBY(int stPin){
+            stby = stPin;
         }
         /**
          * Setup ultrasonic pins
@@ -95,13 +108,15 @@ class MicroMouse{
          * Initialize pins
          */
         void initPins(){
-            /*pinMode(AIN1, OUTPUT);
-            pinMode(AIN2, OUTPUT);
-            pinMode(BIN1, OUTPUT);
-            pinMode(BIN2, OUTPUT);
+            pinMode(RIN1, OUTPUT);
+            pinMode(RIN2, OUTPUT);
+            pinMode(LIN1, OUTPUT);
+            pinMode(LIN2, OUTPUT);
 
-            pinMode(Apwm, OUTPUT);
-            pinMode(Bpwm, OUTPUT);*/
+            pinMode(Rpwm, OUTPUT);
+            pinMode(Lpwm, OUTPUT);
+            pinMode(stby, OUTPUT);
+            digitalWrite(stby, HIGH);
 
             pinMode(triggerLeft, OUTPUT);
             pinMode(triggerFront, OUTPUT);
@@ -135,71 +150,65 @@ class MicroMouse{
             rightDistance = readDistance(triggerRight, echoRight);
         }
         /**
-         * Move single wheel
-         *
-         * @param side : char type. Where "r"==Right, "l"==Left
-         */
-        void moveWheel(char side){
-            if (side=="r"){
-                analogWrite(Apwm, speed_);
-                digitalWrite(AIN1, HIGH);
-                digitalWrite(AIN2, LOW);
-            }
-            else if (side=="l"){
-                analogWrite(Bpwm, speed_);
-                digitalWrite(BIN1,HIGH);
-                digitalWrite(BIN2, LOW);
-            }
-        }
-        /**
          * Move Fordward
          */
         void moveFordward(){
-            analogWrite(Apwm, speed_);
-            analogWrite(Bpwm, speed_);
-            digitalWrite(AIN1, HIGH);
-            digitalWrite(AIN2, LOW);
-            digitalWrite(BIN1, HIGH);
-            digitalWrite(BIN2, LOW);
+            analogWrite(Rpwm, speed_);
+            analogWrite(Lpwm, speed_);
+            digitalWrite(RIN1, HIGH);
+            digitalWrite(RIN2, LOW);
+            digitalWrite(LIN1, HIGH);
+            digitalWrite(LIN2, LOW);
         }
         /**
          * Move Backward
          */
         void moveBackward(){
-            analogWrite(Apwm, speed_);
-            analogWrite(Bpwm, speed_);
-            digitalWrite(AIN1, LOW);
-            digitalWrite(AIN2, HIGH);
-            digitalWrite(BIN1, LOW);
-            digitalWrite(BIN2, HIGH);
+            analogWrite(Rpwm, speed_);
+            analogWrite(Lpwm, speed_);
+            digitalWrite(RIN1, LOW);
+            digitalWrite(RIN2, HIGH);
+            digitalWrite(LIN1, LOW);
+            digitalWrite(LIN2, HIGH);
         }
         /**
          * Move Left
          */
         void moveLeft(){
-            analogWrite(Apwm, speed_);
-            analogWrite(Bpwm, speed_);
-            digitalWrite(AIN1, HIGH);
-            digitalWrite(AIN2, LOW);
-            digitalWrite(BIN1, LOW);
-            digitalWrite(BIN2, HIGH);
+            analogWrite(Rpwm, speed_);
+            analogWrite(Lpwm, speed_);
+            digitalWrite(RIN1, HIGH);
+            digitalWrite(RIN2, LOW);
+            digitalWrite(LIN1, LOW);
+            digitalWrite(LIN2, HIGH);
         }
         /**
          * Move Right
          */
         void moveRight(){
-            analogWrite(Apwm, speed_);
-            analogWrite(Bpwm, speed_);
-            digitalWrite(AIN1, LOW);
-            digitalWrite(AIN2, HIGH);
-            digitalWrite(BIN1, HIGH);
-            digitalWrite(BIN2, LOW);
+            analogWrite(Rpwm, speed_);
+            analogWrite(Lpwm, speed_);
+            digitalWrite(RIN1, LOW);
+            digitalWrite(RIN2, HIGH);
+            digitalWrite(LIN1, HIGH);
+            digitalWrite(LIN2, LOW);
         }
+        /**
+         * Stop Mouse
+         */
         void moveStop(){
-            digitalWrite(AIN1, LOW);
-            digitalWrite(AIN2, LOW);
-            digitalWrite(BIN1, LOW);
-            digitalWrite(BIN2, LOW);
+            digitalWrite(RIN1, LOW);
+            digitalWrite(RIN2, LOW);
+            digitalWrite(LIN1, LOW);
+            digitalWrite(LIN2, LOW);
+        }
+        /**
+         * Turn around
+         */
+        void moveSpin(){
+            for (int i; i<10; i++){
+                moveRight();
+            }
         }
         /**
         * Look up the next move
@@ -218,20 +227,52 @@ class MicroMouse{
                 moveRight();
             }
         }
+
+
+        // Debug / Test Methods
+
+
+        void setTestPins(int* pinsMotor, int stPin){
+            LIN1 = pinsMotor[0];
+            LIN2 = pinsMotor[1];
+            Lpwm = pinsMotor[2];
+            stby = stPin;
+        }
+        void initTestPins(){
+            pinMode(LIN1, OUTPUT);
+            pinMode(LIN2, OUTPUT);
+            pinMode(Lpwm, OUTPUT);
+            pinMode(stby, OUTPUT);
+            digitalWrite(stby, HIGH);
+        }
+        void moveTest(){
+            moveFordward();
+            delay(1500);
+            moveBackward();
+            delay(1500);
+        }
+        void printDistances(){
+            Serial.print(leftDistance);
+            Serial.print(" ");
+            Serial.print(frontDistance);
+            Serial.print(" ");
+            Serial.println(rightDistance);
+        }
 };
 
 MicroMouse mouse;
 
 void setup(){
     Serial.begin(9600);
+    mouse.setMotorPins(pinsMotorRight,  pinsMotorLeft);
     mouse.setUltrasonicPins(triggerPins, echoPins);
+    mouse.setSTBY(stby);
+    mouse.setMinDistance(minDistance);
+    mouse.set_speed(speed_);
     mouse.initPins();
 }
 
 void loop(){
-    mouse.moveFordward()
-    // mouse.updateDistances();
-    // int lDistance = mouse.leftDistance;
-    // int fDistance = mouse.frontDistance;
-    // int rDistance = mouse.rightDistance;
+    mouse.updateDistances();
+    mouse.nextMove();
 }
