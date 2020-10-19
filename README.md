@@ -1,4 +1,4 @@
-# MicroMouse_UL
+# MicroMouse
 Proyecto de ensamble y programación de un robot para la solución de laberintos.
 
 #### Miembros:
